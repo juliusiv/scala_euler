@@ -21,7 +21,7 @@ object Ten {
     case "2" => Two
     case "3" => Three
     case "4" => Four
-    case "5" => "Five"
+    case "5" => Five
     case "6" => "Six"
     case "7" => "Seven"
     case "8" => "Eight"
@@ -47,11 +47,11 @@ object Ten {
     
     // Uses a comprehension to get all the multiples of 3 or 5 and then sums
     // them.
-    def Mult3or5_comp(n: Long): List[Long] = {
-      for(i <- List.range(0, n) if i%3 == 0 || i%5 == 0) yield i
+    def Mult3or5_comp(n: Long): Long = {
+      List.range(0, n).filter { x => x%3 == 0 || x%5 == 0 }.sum
     }
     // Mult3or5_rec(1)
-    Mult3or5_comp(ceil).sum
+    Mult3or5_comp(ceil)
   }
 
 
@@ -111,10 +111,19 @@ object Ten {
   */
   def Four(): Int = {
     val ints: List[Int] = List.range(1, 1000)
-    val mults = for ( i <- ints) yield ints.map {x => i*x}
-    val palindromes = mults.flatten.filter {x => x.toString == x.toString.reverse}
+    val mults = for ( i <- ints) yield ints.map(i*_)
+    val palindromes = mults.flatten
+      .filter {x => x.toString == x.toString.reverse}
     palindromes.max
   }
 
 
+  /*
+    What is the smallest positive number that is evenly divisible by all of the 
+    numbers from 1 to 20?
+  */
+  def Five(): Int = {
+    val div = List.range(1, 21)
+    Stream.from(div.last).toIterator.find {x => div.forall(x%_ == 0)}.get
+  }
 }

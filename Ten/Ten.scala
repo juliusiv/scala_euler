@@ -2,6 +2,10 @@ object Ten {
   val usage = """
     Usage: Ten <1-10>
   """
+
+  lazy val Sieve: Stream[Int] = 2 #:: Stream.from(3).filter {
+    x => Sieve.takeWhile {i => i*i <= x}.forall(x%_ != 0) }
+
   def main(args: Array[String]) {
     if (args.length != 1) println(usage)
     else {
@@ -11,7 +15,7 @@ object Ten {
       val func = ArgMatch(arglist.head)
       println(func)
 
-      println(System.currentTimeMillis() - begin)
+      println("Time: " + (System.currentTimeMillis() - begin))
     }
   }
 
@@ -22,17 +26,17 @@ object Ten {
     case "3" => Three
     case "4" => Four
     case "5" => Five
-    case "6" => "Six"
-    case "7" => "Seven"
-    case "8" => "Eight"
+    case "6" => Six
+    case "7" => Seven
+    case "8" => Eight
     case "9" => "Nine"
     case "10" => "Ten"
     case _ => usage    
   }
 
-
   /*
     Find the sum of all the multiples of 3 or 5 below 1000.
+    Answer: 233168
   */
   def One(): Long = {
     val ceil = 1000
@@ -58,6 +62,7 @@ object Ten {
   /*
     Find the sum of the even-valued terms of the Fibonacci sequence whose values
     do not exceed four million.
+    Answer: 4613732
   */
   def Two(): Long = {
     val ceil = 4000000
@@ -90,11 +95,9 @@ object Ten {
 
   /*
     What is the largest prime factor of the number 600851475143?
+    Answer: 6857
   */
   def Three(): Long = {
-    val ints = Stream.from(2)
-    val sieve = ints.head #:: ints.tail.filter {x => x%ints.head != 0}
-
     // Relies on the fact that once we've found a prime that is not a factor,
     // the remaining prime factors must be larger than the last prime factors.
     def PrimeFactors(n: Long, primes: Stream[Int]): Long = {
@@ -102,12 +105,13 @@ object Ten {
       else if (n%primes.head == 0) PrimeFactors(n/primes.head, primes)
       else PrimeFactors(n, primes.tail)
     }
-    PrimeFactors(600851475143L, sieve)
+    PrimeFactors(600851475143L, Sieve)
   }
 
 
   /*
     Find the largest palindrome made from the product of two 3-digit numbers.
+    Answer: 906609
   */
   def Four(): Int = {
     val ints: List[Int] = List.range(1, 1000)
@@ -121,9 +125,48 @@ object Ten {
   /*
     What is the smallest positive number that is evenly divisible by all of the 
     numbers from 1 to 20?
+    Answer: 232792560
   */
   def Five(): Int = {
     val div = List.range(1, 21)
     Stream.from(div.last).toIterator.find {x => div.forall(x%_ == 0)}.get
+  }
+
+
+  /*
+    Find the difference between the sum of the squares of the first one hundred
+    natural numbers and the square of the sum.
+    Answer: 25164150
+  */
+  def Six(): Long = {
+    val nums: List[Long] = List.range(1, 101)
+    val sum = nums.sum
+    (sum*sum) - (nums.map {x => x*x}.foldLeft(0L) ( _+_ ))
+  }
+
+
+  /*
+    What is the 10 001st prime number?
+    Answer: 104743
+  */
+  def Seven(): Int = {
+    Sieve.take(10001).last
+  }
+
+
+  /*
+    Find the thirteen adjacent digits in the 1000-digit number that have the
+    greatest product. What is the value of this product?
+    Answer: 23514624000
+  */
+  def Eight(): Long = {
+    val nums = io.Source.fromFile("eight.txt").mkString.toList.map(_.toLong-48L)
+
+    def AdjacentProduct(xs: List[Long], depth: Int): List[Long] = {
+      if (depth <= 0) xs
+      else xs.grouped(13).map {x => x.foldLeft(1L)( _*_ )}.max :: 
+        AdjacentProduct(xs.tail, depth-1)
+    }
+    AdjacentProduct(nums, 13).max
   }
 }

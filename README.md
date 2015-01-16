@@ -1,0 +1,1 @@
+I decided to give Project Euler a shot with Scala. For some of the problems I have more than one solution just to try out different stuff. It's likely that the earlier solutions will have some issues, stylistically or otherwise.

@@ -12,7 +12,7 @@ object Ten {
       val begin = System.currentTimeMillis()
 
       val arglist = args.toList
-      val func = ArgMatch(arglist.head)
+      val func = argMatch(arglist.head)
       println(func)
 
       println("Time: " + (System.currentTimeMillis() - begin))
@@ -20,7 +20,10 @@ object Ten {
   }
 
 
-  def ArgMatch(arg: String): Any = arg match {
+  /*
+    Parses the command line arguments to call the right functions.
+  */
+  def argMatch(arg: String): Any = arg match {
     case "1" => One
     case "2" => Two
     case "3" => Three
@@ -29,8 +32,8 @@ object Ten {
     case "6" => Six
     case "7" => Seven
     case "8" => Eight
-    case "9" => "Nine"
-    case "10" => "Ten"
+    case "9" => Nine
+    case "10" => Ten
     case _ => usage    
   }
 
@@ -38,24 +41,24 @@ object Ten {
     Find the sum of all the multiples of 3 or 5 below 1000.
     Answer: 233168
   */
-  def One(): Long = {
+  def One(): AnyVal = {
     val ceil = 1000
 
     // This is much faster than the list comprehension solution but it will hit
     // recursion depth errors.
-    def Mult3or5_rec(n: Long): Long = {
+    def multSumRec(n: Long): Long = {
       if (n >= ceil) 0
-      else if (n%3 == 0 || n%5 == 0) Mult3or5_rec(n+1) + n
-      else Mult3or5_rec(n+1)
+      else if (n%3 == 0 || n%5 == 0) multSumRec(n+1) + n
+      else multSumRec(n+1)
     }
     
     // Uses a comprehension to get all the multiples of 3 or 5 and then sums
     // them.
-    def Mult3or5_comp(n: Long): Long = {
+    def multSumComp(n: Long): Long = {
       List.range(0, n).filter { x => x%3 == 0 || x%5 == 0 }.sum
     }
-    // Mult3or5_rec(1)
-    Mult3or5_comp(ceil)
+    // multSumRec(1)
+    multSumComp(ceil)
   }
 
 
@@ -64,13 +67,13 @@ object Ten {
     do not exceed four million.
     Answer: 4613732
   */
-  def Two(): Long = {
+  def Two(): AnyVal = {
     val ceil = 4000000
     var sum: Long = 2
 
     // Uses a Stream to create the Fibonacci sequence and then accumulates all
     // the even values.
-    def FibSum_lazy(): Long = {
+    def fibSumLazy(): AnyVal = {
       lazy val fib: Stream[Int] = 0 #:: 1 #:: fib.zip(fib.tail).map {
         n => n._1 + n._2
       }
@@ -81,15 +84,15 @@ object Ten {
 
     // Recursively finds the next term of the Fibonacci sequence and adds them
     // up as they go.
-    def FibSum_rec(last_2: Int, last_1: Int): Long = { 
+    def fibSumRec(last_2: Int, last_1: Int): AnyVal = { 
       if (last_2+last_1 > ceil) sum
       else {
         if ((last_2+last_1)%2 == 0) sum += last_2+last_1
-        FibSum_rec(last_1, last_2+last_1)
+        fibSumRec(last_1, last_2+last_1)
       }
     }
-    FibSum_lazy()
-    // FibSum_rec(1, 2)
+    fibSumLazy()
+    // fibSumRec(1, 2)
   }
 
 
@@ -97,15 +100,15 @@ object Ten {
     What is the largest prime factor of the number 600851475143?
     Answer: 6857
   */
-  def Three(): Long = {
+  def Three(): AnyVal = {
     // Relies on the fact that once we've found a prime that is not a factor,
     // the remaining prime factors must be larger than the last prime factors.
-    def PrimeFactors(n: Long, primes: Stream[Int]): Long = {
+    def primeFactors(n: Long, primes: Stream[Int]): AnyVal = {
       if (n == primes.head) n
-      else if (n%primes.head == 0) PrimeFactors(n/primes.head, primes)
-      else PrimeFactors(n, primes.tail)
+      else if (n%primes.head == 0) primeFactors(n/primes.head, primes)
+      else primeFactors(n, primes.tail)
     }
-    PrimeFactors(600851475143L, Sieve)
+    primeFactors(600851475143L, Sieve)
   }
 
 
@@ -113,7 +116,7 @@ object Ten {
     Find the largest palindrome made from the product of two 3-digit numbers.
     Answer: 906609
   */
-  def Four(): Int = {
+  def Four(): AnyVal = {
     val ints: List[Int] = List.range(1, 1000)
     val mults = for ( i <- ints) yield ints.map(i*_)
     val palindromes = mults.flatten
@@ -127,7 +130,7 @@ object Ten {
     numbers from 1 to 20?
     Answer: 232792560
   */
-  def Five(): Int = {
+  def Five(): AnyVal = {
     val div = List.range(1, 21)
     Stream.from(div.last).toIterator.find {x => div.forall(x%_ == 0)}.get
   }
@@ -138,7 +141,7 @@ object Ten {
     natural numbers and the square of the sum.
     Answer: 25164150
   */
-  def Six(): Long = {
+  def Six(): AnyVal = {
     val nums: List[Long] = List.range(1, 101)
     val sum = nums.sum
     (sum*sum) - (nums.map {x => x*x}.foldLeft(0L) ( _+_ ))
@@ -149,7 +152,7 @@ object Ten {
     What is the 10 001st prime number?
     Answer: 104743
   */
-  def Seven(): Int = {
+  def Seven(): AnyVal = {
     Sieve.take(10001).last
   }
 
@@ -159,14 +162,35 @@ object Ten {
     greatest product. What is the value of this product?
     Answer: 23514624000
   */
-  def Eight(): Long = {
+  def Eight(): AnyVal = {
     val nums = io.Source.fromFile("eight.txt").mkString.toList.map(_.toLong-48L)
 
-    def AdjacentProduct(xs: List[Long], depth: Int): List[Long] = {
+    def adjacentProduct(xs: List[Long], depth: Int): List[Long] = {
       if (depth <= 0) xs
       else xs.grouped(13).map {x => x.foldLeft(1L)( _*_ )}.max :: 
-        AdjacentProduct(xs.tail, depth-1)
+        adjacentProduct(xs.tail, depth-1)
     }
-    AdjacentProduct(nums, 13).max
+    adjacentProduct(nums, 13).max
+  }
+
+
+  /*
+    There exists exactly one Pythagorean triplet for which a + b + c = 1000.
+    Find the product abc.
+    Answer: 31875000
+  */
+  def Nine(): AnyVal = {
+      ( for(a <- (1L to 1000L);
+            b <- (1L to 1000L) if ( math.sqrt(a*a + b*b)+a+b == 1000)) yield
+          a*b*math.sqrt(a*a + b*b)).head.toLong
+  }
+
+
+  /*
+    Find the sum of all the primes below two million.
+    Answer: 142913828922
+  */
+  def Ten(): AnyVal = {
+    Sieve.map(_.toLong).takeWhile( _ < 2000000).sum
   }
 }
